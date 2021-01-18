@@ -30,6 +30,8 @@ $ python3 apstraGo.py -u admin -p admin -a 192.168.1.50 -v 443 -c Acme_Corp
 | -v/- -port | AOS Port Number | 443
 | -c/- -customer | The name of the customer | Acme_Corp
  
+![Example](img/example.gif)
+
  ## Issues
  If you find issues please open an issue via GitHub.
  
