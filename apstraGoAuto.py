@@ -1,6 +1,7 @@
+#!/usr/bin/python3
 import argparse
 import pprint
-import apstraClass
+import jclClass
 
 
 def main(argv=None):
@@ -31,7 +32,7 @@ def main(argv=None):
 
     pprint.pprint(vars(args))
 
-    asptraInstance = apstraClass.apstra()
+    asptraInstance = jclClass.jclClass()
     asptraInstance.login(username=args.username, password=args.password, address=args.address, port=args.port)
 
     asptraInstance.jclProvision(customerName=args.customer)

@@ -5,6 +5,7 @@
 
 apstraTest.py
 apstraCLI.py
+.DS_Store
 
 # User-specific files
 *.rsuser
