@@ -1,10 +1,10 @@
-#!/usr/bin/python3
 import argparse
 import pprint
-import jclClass
-
+from apstraGo.jclClass import jcl
 
 def main(argv=None):
+    """vLabs/JCL quick spinup
+    """    
 
     parser = argparse.ArgumentParser(description='')
 
@@ -32,13 +32,10 @@ def main(argv=None):
 
     pprint.pprint(vars(args))
 
-    asptraInstance = jclClass.jclClass()
+    asptraInstance = jcl()
     asptraInstance.login(username=args.username, password=args.password, address=args.address, port=args.port)
 
     asptraInstance.jclProvision(customerName=args.customer)
-
-
-
 
 if __name__ == "__main__":
     main()

@@ -2,10 +2,6 @@
 TODO:
 
     - Create configlet
-    - Create the way you asign QFX to blueprint
-    - Create VRF (Securuty Route)
-    - Create VNIs Virtual Network
-    - Assign Interface to server facing ports
 
     - Create Simple CLI
     - Create YAML Upload
@@ -260,9 +256,7 @@ class apstra():
         """        
         url = self.baseUrl + self.urlIpPool
         response = self.urlRequest(url=url, method='GET')
-        returnedDic = response.json()
-        returnedDic['totalPoolCount'] = len(returnedDic['items'])
-        return returnedDic
+        return response
 
 
     """

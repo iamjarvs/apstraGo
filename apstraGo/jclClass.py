@@ -1,8 +1,7 @@
-#!/usr/bin/python3
-import apstraClass
+from apstraGo import apstraClass
 import time
 
-class jclClass(apstraClass.apstra):
+class jcl(apstraClass.apstra):
     """JCL/vLabs Auto-creation class
 
     This class aims to provide a set blueprint for creating a AOS demo testbed.

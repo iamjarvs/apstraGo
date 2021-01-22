@@ -3,8 +3,9 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
-apstraTest.py
-apstraCLI.py
+apstraGo/apstraTest.py
+apstraGo/apstraCLI.py
+apstraGo/test.py
 .DS_Store
 
 # User-specific files
