@@ -1,4 +1,11 @@
-from apstraGo import apstraClass
+try:
+    import apstraClass
+except ModuleNotFoundError as e:
+    pass
+try:
+    from apstraGo import apstraClass
+except ModuleNotFoundError as e:
+    pass
 import time
 
 class jcl(apstraClass.apstra):
@@ -26,22 +33,17 @@ class jcl(apstraClass.apstra):
         self.demoBlueprintName=None
         self.demoSecurityZone=None
 
-    def demoAsnPool(self):
+    def demoAsnPool(self, poolName, firstAsn, lastAsn):
         #Create ASN Pools
-        self.resourceAsnCreate(poolName=self.demoCustomerName+'_ASN_Pool', firstAsn=65000, lastAsn=65500)
+        self.resourceAsnCreate(poolName=poolName, firstAsn=firstAsn, lastAsn=lastAsn)
     
-    def demoIpPool(self):
+    def demoIpPool(self, poolName, network):
         #Create IP Pools
-        ipPoolList=[{'name':'Fabric', 'subnet':'10.0.0.0/24'}, {'name':'Loopback', 'subnet':'172.16.0.0/24'}]
-        for ipPool in ipPoolList:
-            self.resourceIpCreate(poolName=self.demoCustomerName+'_'+ipPool['name']+'_IP_Pool', network=ipPool['subnet']) 
+        self.resourceIpCreate(poolName=poolName, network=network) 
 
-    def createVniPool(self):
+    def createVniPool(self, poolName, firstVni, lastVni):
         #Create VNI Pools
-        vniPoolList=[{'name':'default', 'firstVni':'6000', 'lastVni':'7000'}]
-        for vniPool in vniPoolList:
-            self.resourceVniCreate(poolName=self.demoCustomerName+'_'+vniPool['name']+'_VNI_Pool', \
-                    firstVni=vniPool['firstVni'], lastVni=vniPool['lastVni'])
+        self.resourceVniCreate(poolName=poolName, firstVni=firstVni, lastVni=lastVni)
 
     def createRacks(self):
         #Create Rack Types
@@ -136,15 +138,20 @@ class jcl(apstraClass.apstra):
         self.demoSecurityZone = self.demoCustomerName + '_VRF'
         
         #Create ASN Pools
-        self.demoAsnPool()
+        self.demoAsnPool(poolName=self.demoCustomerName+'_ASN_Pool', firstAsn=65000, lastAsn=65500)
         #Little snooze
         time.sleep(1)
         #Create IP Pools
-        self.demoIpPool()
+        ipPoolList=[{'name':'Fabric', 'subnet':'10.0.0.0/24'}, {'name':'Loopback', 'subnet':'172.16.0.0/24'}]
+        for ipPool in ipPoolList:
+            self.demoIpPool(poolName=self.demoCustomerName+'_'+ipPool['name']+'_IP_Pool', network=ipPool['subnet'])
         #Little snooze
         time.sleep(1)
         #Create VNI Pools
-        self.createVniPool()
+        vniPoolList=[{'name':'default', 'firstVni':'6000', 'lastVni':'7000'}]
+        for vniPool in vniPoolList:
+            self.createVniPool(poolName=self.demoCustomerName+'_'+vniPool['name']+'_VNI_Pool', \
+                    firstVni=vniPool['firstVni'], lastVni=vniPool['lastVni'])
         #Little snooze
         time.sleep(1)
         #Create Rack Types

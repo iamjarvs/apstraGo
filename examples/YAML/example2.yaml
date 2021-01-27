@@ -1,0 +1,26 @@
+apstrago:
+  login:
+      username: "admin"
+      password: "admin"
+      address: "192.168.1.70"
+      port: "443"
+  resourcePools:  
+    asnPools:
+      - poolName: "TestAsnPool"
+        firstASN: "65000"
+        lastASN: "65100"
+    ipPools:
+      - poolName: "TestIpPool-Fabric"
+        network: "192.168.1.1/24"
+      - poolName: "TestIpPool-Loopback"
+        network: "172.16.1.1/24"
+  devices:
+      username: "root"
+      password: "Juniper"
+      platform: "junos"
+      agentType: "offbox"
+      operationMode: "full_control"
+      acknowledge: True
+      addresses:
+        - "10.1.1.201"
+        - "10.1.1.202"

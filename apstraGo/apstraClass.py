@@ -3,7 +3,6 @@ TODO:
 
     - Create configlet
 
-    - Create Simple CLI
     - Create YAML Upload
 
 """
@@ -76,32 +75,32 @@ class apstra():
         Returns:
             bytes: Request response object
         """        
-        print(f'\n\n{url}')
+        # print(f'\n\n{url}')
 
         try:
             if self.apiToken == None:
                 headers = { 'Content-Type':"application/json", 'Cache-Control':"no-cache" }
                 data = '{ \"username\":\"' + self.username + '\", \"password\":\"' + self.password + '\" }'
-                response = requests.request(f"{method}", url, data=data, headers=headers, verify=False) 
+                response = requests.request(f"{method}", url, data=data, headers=headers, verify=False, timeout=10) 
                 return response
 
             elif method == 'GET':
                 headers = { 'Content-Type':"application/json", 'Cache-Control':"no-cache", 'AUTHTOKEN':f"{self.apiToken}"}
-                response = requests.request("GET", url, data=data, headers=headers, verify=False) 
+                response = requests.request("GET", url, data=data, headers=headers, verify=False, timeout=10) 
             
             elif method == 'DELETE':
                 headers = { 'Content-Type':"application/json", 'Cache-Control':"no-cache", 'AUTHTOKEN':f"{self.apiToken}"}
-                response = requests.request("DELETE", url, data=data, headers=headers, verify=False) 
+                response = requests.request("DELETE", url, data=data, headers=headers, verify=False, timeout=10) 
 
             elif method == 'POST':
                 headers = { 'Content-Type':"application/json", 'Cache-Control':"no-cache", 'AUTHTOKEN':f"{self.apiToken}"}
-                response = requests.request("POST", url, data=data, headers=headers, verify=False) 
+                response = requests.request("POST", url, data=data, headers=headers, verify=False, timeout=10) 
 
             elif method == 'PUT':
                 headers = { 'Content-Type':"application/json", 'Cache-Control':"no-cache", 'AUTHTOKEN':f"{self.apiToken}"}
-                response = requests.request("PUT", url, data=data, headers=headers, verify=False) 
+                response = requests.request("PUT", url, data=data, headers=headers, verify=False, timeout=10) 
 
-            print(f'{response.status_code} \n\n')
+            # print(f'{response.status_code} \n\n')
 
             return response
         except requests.exceptions.RequestException as e:
@@ -129,7 +128,8 @@ class apstra():
         self.address=kwargs['address']
         self.port=str(kwargs['port'])
         self.createBaseUrl()
-        self.getApiToken()
+        response = self.getApiToken()
+        return response
 
     def getApiToken(self):
         """Create new API token
@@ -141,7 +141,8 @@ class apstra():
         self.apiToken = None
         response = self.urlRequest(url=loginUrl, method='POST')
         self.apiToken = response.json()['token']
-        print(self.apiToken)
+        print(f"API Token: {self.apiToken}")
+        return response
         
     def createBaseUrl(self):
         """Create the base URL
@@ -335,6 +336,7 @@ class apstra():
         elif resId != '':
             idString = f'"id": "{resId}",'
 
+        responseAll = []
         for mgmtIp in mgmtIpList:
 
             data = f'''{{
@@ -349,7 +351,10 @@ class apstra():
                         }}'''
 
             response = self.urlRequest(url=url, method='POST', data=data)
+            responseAll.append(response)
 
+        return responseAll
+        
     def ackManagedDevices(self, systemId: str, deviceModel: str) -> bytes:
         """Acknowledge devices added to Apstra
 
@@ -382,11 +387,15 @@ class apstra():
         """        
         devList = self.systemsGet().json()
 
+        responseAll = []
         for dev in devList['items']:
             systemId = dev['id']
             deviceModel = dev['facts']['aos_hcl_model']
-            self.ackManagedDevices(systemId, deviceModel)
-            
+            response = self.ackManagedDevices(systemId, deviceModel)
+            responseAll.append(response)
+
+        return responseAll
+           
     def systemsGet(self) -> bytes:
         """Get all system ID's
 
@@ -939,142 +948,3 @@ class apstra():
         """        
         if 'errors' in response.json():
             print(response.json())
-
-
-    """
-    Demo Provisioning
-    """
-    def jclProvision(self, customerName: str) -> None:
-        """Create the entire JCL testbed in one easy python call.
-
-        This method is used to create the entire JCL testbed in one easy python call.
-        This is static and you get no choices however it should work for many demos.
-
-        Args:
-            customerName (str): Name of the customer
-        """       
-        #Remove ll white space in customer name
-        self.demoCustomerName=customerName.replace(' ', '')
-        self.demoTemplateName=self.demoCustomerName + '_DC_Template'
-        self.demoBlueprintName = self.demoCustomerName + '_DC_Blueprint'
-        self.demoSecurityZone = self.demoCustomerName + '_VRF'
-        
-        #Create ASN Pools
-        self.resourceAsnCreate(poolName=self.demoCustomerName+'_ASN_Pool', firstAsn=65000, lastAsn=65500)
-        
-        #Little snooze
-        time.sleep(1)
-        
-        #Create IP Pools
-        ipPoolList=[{'name':'Fabric', 'subnet':'10.0.0.0/24'}, {'name':'Loopback', 'subnet':'172.16.0.0/24'}]
-        for ipPool in ipPoolList:
-            self.resourceIpCreate(poolName=self.demoCustomerName+'_'+ipPool['name']+'_IP_Pool', network=ipPool['subnet']) 
-
-        #Little snooze
-        time.sleep(1)
-
-        #Create VNI Pools
-        vniPoolList=[{'name':'default', 'firstVni':'6000', 'lastVni':'7000'}]
-        for vniPool in vniPoolList:
-            self.resourceVniCreate(poolName=self.demoCustomerName+'_'+vniPool['name']+'_VNI_Pool', \
-                    firstVni=vniPool['firstVni'], lastVni=vniPool['lastVni'])
-
-        #Little snooze
-        time.sleep(1)
-
-        #Create Rack Types
-        rackTypeList=[
-            {'rackName':'1Leaf1Server', 
-            'connectivityType':'l2',
-            'leafLogicalDevice':'AOS-7x10-Leaf',
-            'serverCount':1,
-            'serverLogicalDevice':'AOS-1x10-1',
-            'leafServerLinkName':'ServerToLeaf'},
-            
-            {'rackName':'1Leaf2Server', 
-            'connectivityType':'l2',
-            'leafLogicalDevice':'AOS-7x10-Leaf',
-            'serverCount':2,
-            'serverLogicalDevice':'AOS-1x10-1',
-            'leafServerLinkName':'ServerToLeaf'},
-            ]
-        for rackType in rackTypeList:
-            self.createDesignSimpleRack(rackTypeName=rackType['rackName'], connectivityType=rackType['connectivityType'], \
-                    leafLogicalDevice=rackType['leafLogicalDevice'], serverCount=rackType['serverCount'], \
-                    serverLogicalDevice=rackType['serverLogicalDevice'], leafServerLinkName=rackType['leafServerLinkName'])
-
-        #Little snooze
-        time.sleep(1)
-
-        #Create Template
-        self.designDemoTemplate(templateName=self.demoTemplateName, spineLogicalDeviceId='AOS-7x10-Spine', \
-                rackTypeList=['1Leaf1Server', '1Leaf2Server'], spineCount=2, ipChoice='ipv4', asnAllocation='distinct', \
-                overlayControl='evpn')
-
-        #Little snooze
-        time.sleep(1)
-
-        #Create Blueprint
-        self.blueprintCreate(blueprintName=self.demoBlueprintName, templateName=self.demoTemplateName)
-
-        time.sleep(5)
-
-        #Asign ASN and IP pools
-        self.blurprintResouceGroupAsnSpine(blueprintName=self.demoBlueprintName, asnPool=self.demoCustomerName+'_ASN_Pool')
-        self.blurprintResouceGroupAsnLeaf(blueprintName=self.demoBlueprintName, asnPool=self.demoCustomerName+'_ASN_Pool')
-        self.blurprintResouceGroupIpSpine(blueprintName=self.demoBlueprintName, ipPool=self.demoCustomerName+'_Loopback_IP_Pool')
-        self.blurprintResouceGroupIpLeaf(blueprintName=self.demoBlueprintName, ipPool=self.demoCustomerName+'_Loopback_IP_Pool')
-        self.blurprintResouceGroupSpineLeafLink(blueprintName=self.demoBlueprintName, ipPool=self.demoCustomerName+'_Fabric_IP_Pool')
-
-        #Little snooze
-        time.sleep(1)
-
-        #Asign Physical devcie templates to logical devices
-        self.blueprintInterfaceMap(blueprintName=self.demoBlueprintName, spinePhysicalDevcie='Juniper_vQFX__AOS-7x10-Spine', leafPhysicalDevice='Juniper_vQFX__AOS-7x10-Leaf')
-
-        #Little snooze
-        time.sleep(1)
-
-        #Create security zone (VRF)
-        self.blueprintCreateSecurityZone(securityZoneName=self.demoSecurityZone, blueprintName=self.demoBlueprintName)
-
-        #Little snooze
-        time.sleep(10)
-
-        #Add Loopback addresses for the new VRF
-        self.blueprintAddSecurityZoneLoopbacks(securityZoneName=self.demoSecurityZone, blueprintName=self.demoBlueprintName, ipPool=self.demoCustomerName+'_Loopback_IP_Pool')
-
-        #Little snooze
-        time.sleep(1)
-
-        #Add VNI to the security zone
-        self.blueprintAddSecurityZoneVNI(securityZoneName=self.demoSecurityZone, blueprintName=self.demoBlueprintName, vniPoolName=self.demoCustomerName+'_default_VNI_Pool')
-
-        #Little snooze
-        time.sleep(1)
-
-        #Add VXLAN VNI's
-        vxlanList=[{'name':f'{self.demoCustomerName}_VNI_RED', 'ipv4Subnet':'192.168.1.0/24', 'ipv4Gateway':'192.168.1.1'}, {'name':f'{self.demoCustomerName}_VNI_BLUE', 'ipv4Subnet':'192.168.2.0/24', 'ipv4Gateway':'192.168.2.1'}]
-        for vxlan in vxlanList:
-            self.blueprintAddVirtualNetworks(blueprintName=self.demoBlueprintName, virtualNetworkName=vxlan['name'], securityZoneName=self.demoSecurityZone, \
-                ipv4Subnet=vxlan['ipv4Subnet'], ipv4Gateway=vxlan['ipv4Gateway'])
-
-        #Little snooze
-        time.sleep(1)
-
-        #Assign VNI pool to the virtual VXLAN networks
-        self.blueprintAddVxlanVniPool(blueprintName=self.demoBlueprintName, vniPoolName=self.demoCustomerName+'_default_VNI_Pool')
-
-        #Little snooze
-        time.sleep(1)
-
-        #Onboard Devices
-        self.offboxOnboarding(username='root', password='Juniper!1', platform='junos', \
-                mgmtIpList=['100.123.13.201', '100.123.13.202', '100.123.13.203', '100.123.13.204'])
-
-        #Quick snooze while the offbox agent is set up
-        time.sleep(20)
-
-        #Ack All Devices
-        self.ackManagedDevicesAll()
-

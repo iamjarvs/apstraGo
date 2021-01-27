@@ -7,7 +7,7 @@ setup(
     description='Python wrapper for Apstra OS',
     author='Adam Jarvis',
     url='https://github.com/iamjarvs/apstraGo',
-    install_requires=['requests'],
+    install_requires=['requests', 'PyYAML', 'cerberus'],
     keywords='apstra juniper',
     packages=['apstraGo'],
     classifiers=[
@@ -18,7 +18,8 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'apstraGo-auto = apstraGo.apstraGoAuto:main'
-        ]
+            'apstraGo-auto = apstraGo.apstraGoAuto:main',
+            'apstraGo-yaml = apstraGo.apstraGoYaml:main'
+        ]      
     }
 )
