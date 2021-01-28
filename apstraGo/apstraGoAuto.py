@@ -1,9 +1,18 @@
+try:
+    from jclClass import jcl
+except ModuleNotFoundError as e:
+    pass
+try:
+    from apstraGo.jclClass import jcl
+except ModuleNotFoundError as e:
+    pass
 import argparse
-import pprint
-from apstraGo.jclClass import jcl
 
-def main(argv=None):
+def main(argv: bytes=None) -> None:
     """vLabs/JCL quick spinup
+
+    Print logic is help in JCL Provison Class
+
     """    
 
     parser = argparse.ArgumentParser(description='')
@@ -29,8 +38,6 @@ def main(argv=None):
                         help='Your Customers Name, use "for spaces" ')   
 
     args = parser.parse_args(argv)
-
-    pprint.pprint(vars(args))
 
     asptraInstance = jcl()
     asptraInstance.login(username=args.username, password=args.password, address=args.address, port=args.port)

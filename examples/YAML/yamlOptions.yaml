@@ -1,0 +1,67 @@
+apstrago:
+  login:                                    #Required Section 
+      username: ""                          #Required (str)
+      password: ""                          #Required (str)
+      address: ""                           #Required (str)
+      port: ""                              #Optional (str) - Default = 443
+ 
+  resourcePools:                            #Optional Section 
+    
+    asnPools:                               #Optional Section 
+      - poolName: ""                        #Required (str) - If section selected
+        firstASN: ""                        #Required (str) - If section selected
+        lastASN: ""                         #Required (str) - If section selected
+    
+    ipPools:                                #Optional Section 
+      - poolName: ""                        #Required (str) - If section selected
+        network: ""                         #Required (str) - If section selected
+    
+    vniPools:                               #Optional Section 
+      - poolName: ""                        #Required (str) - If section selected
+        firstVNI: ""                        #Required (str) - If section selected
+        lastVNI: ""                         #Required (str) - If section selected
+  
+  racks:                                    #Optional Section 
+    - rackName: ""                          #Required (str) - If section selected
+      rackTypeDesc: ""                      #Optional (str) - Default = None
+      connectivityType: ""                  #Optional (str) - Default = l2
+      leafName: ""                          #Optional (str) - Default = rackTypeName + -Leaf
+      linksPerSpine: "1"                    #Optional (str) - Default = 1
+      leafLogicalDevice: ""                 #Optional (str) - Default = AOS-7x10-Leaf
+      leafSpineLinkSpeedUnit : "G"          #Optional (str) - Default = G
+      leafSpineLinkSpeedValue: "40"         #Optional (str) - Default = 10
+      serverName: ""                        #Optional (str) - Default = rackTypeName + -Server
+      serverCount: ""                       #Optional (str) - Default = 1
+      serverLogicalDevice: ""               #Optional (str) - Default = AOS-1x10-1
+      leafServerLinkName: ""                #Optional (str) - Default = ServerToLeaf
+      lagType: ""                           #Optional (str) - Default = null
+      LeafServerLinkSpeedUnit: ""           #Optional (str) - Default = G
+      LeafServerLinkSpeedValue: ""          #Optional (str) - Default = 10
+      linksPerLeafCount: ""                 #Optional (str) - Default = 1
+
+  templates:                                #Optional Section 
+    - templateName: ""                      #Required (str) - If section selected
+      spineLogicalDeviceId: ""              #Required (str) - If section selected
+      rackTypeList:                         #Required (list) - If section selected
+        - ""                                #Required (str) - Add Multiple Items To List - If section selected
+      spineCount: "2"                       #Optional (str) - Default = 2
+      ipChoice: "ipv4"                      #Optional (str) - Default = ipv4
+      asnAllocation: ""                     #Optional (str) - Default = distinct
+      overlayControl: ""                    #Optional (str) - Default = evpn
+  
+  blueprints:                               #Optional Section 
+      - name: ""                            #Required (str) - If section selected
+        templateName: ""                    #Required (str) - If section selected
+  
+  devices:                                  #Optional Section 
+      username: ""                          #Required (str) - If section selected
+      password: ""                          #Required (str) - If section selected
+      platform: ""                          #Required (str) - If section selected
+      agentType: ""                         #Optional (str) - Default = offbox
+      operationMode: ""                     #Optional (str) - Default = full_control
+      acknowledge:                          #Optional (str) - Default = False
+      addresses:                            #Required (list) - If section selected
+        - ""                                #Required (str) - Add Multiple Items To List - If section selected
+
+
+
