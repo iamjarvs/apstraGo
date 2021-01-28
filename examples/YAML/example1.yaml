@@ -2,7 +2,7 @@ apstrago:
   login:
       username: "admin"
       password: "admin"
-      address: "192.168.1.70"
+      address: "192.168.1.81"
       port: "443"
   resourcePools:  
     asnPools:

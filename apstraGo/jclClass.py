@@ -1,3 +1,6 @@
+from rich import print
+# from json import JSONDecodeError
+import json
 try:
     import apstraClass
 except ModuleNotFoundError as e:
@@ -7,6 +10,7 @@ try:
 except ModuleNotFoundError as e:
     pass
 import time
+import requests
 
 class jcl(apstraClass.apstra):
     """JCL/vLabs Auto-creation class
@@ -35,15 +39,18 @@ class jcl(apstraClass.apstra):
 
     def demoAsnPool(self, poolName, firstAsn, lastAsn):
         #Create ASN Pools
-        self.resourceAsnCreate(poolName=poolName, firstAsn=firstAsn, lastAsn=lastAsn)
-    
+        response=self.resourceAsnCreate(poolName=poolName, firstAsn=firstAsn, lastAsn=lastAsn)
+        self.responseParse(response)
+
     def demoIpPool(self, poolName, network):
         #Create IP Pools
-        self.resourceIpCreate(poolName=poolName, network=network) 
+        response=self.resourceIpCreate(poolName=poolName, network=network)
+        self.responseParse(response)
 
     def createVniPool(self, poolName, firstVni, lastVni):
         #Create VNI Pools
-        self.resourceVniCreate(poolName=poolName, firstVni=firstVni, lastVni=lastVni)
+        response=self.resourceVniCreate(poolName=poolName, firstVni=firstVni, lastVni=lastVni)
+        self.responseParse(response)
 
     def createRacks(self):
         #Create Rack Types
@@ -63,63 +70,108 @@ class jcl(apstraClass.apstra):
             'leafServerLinkName':'ServerToLeaf'},
             ]
         for rackType in rackTypeList:
-            self.createDesignSimpleRack(rackTypeName=rackType['rackName'], connectivityType=rackType['connectivityType'], \
+            response=self.createDesignSimpleRack(rackTypeName=rackType['rackName'], connectivityType=rackType['connectivityType'], \
                     leafLogicalDevice=rackType['leafLogicalDevice'], serverCount=rackType['serverCount'], \
                     serverLogicalDevice=rackType['serverLogicalDevice'], leafServerLinkName=rackType['leafServerLinkName'])
+            self.responseParse(response)
 
     def createDcTemplate(self):
         #Create Template
-        self.designDemoTemplate(templateName=self.demoTemplateName, spineLogicalDeviceId='AOS-7x10-Spine', \
+        response=self.designDemoTemplate(templateName=self.demoTemplateName, spineLogicalDeviceId='AOS-7x10-Spine', \
                 rackTypeList=['1Leaf1Server', '1Leaf2Server'], spineCount=2, ipChoice='ipv4', asnAllocation='distinct', \
                 overlayControl='evpn')
+        self.responseParse(response)
 
     def createBlueprint(self):
         #Create Blueprint
-        self.blueprintCreate(blueprintName=self.demoBlueprintName, templateName=self.demoTemplateName)
+        response=self.blueprintCreate(blueprintName=self.demoBlueprintName, templateName=self.demoTemplateName)
+        self.responseParse(response)
 
     def blueprintPools(self): 
         #Asign ASN and IP pools
-        self.blurprintResouceGroupAsnSpine(blueprintName=self.demoBlueprintName, asnPool=self.demoCustomerName+'_ASN_Pool')
-        self.blurprintResouceGroupAsnLeaf(blueprintName=self.demoBlueprintName, asnPool=self.demoCustomerName+'_ASN_Pool')
-        self.blurprintResouceGroupIpSpine(blueprintName=self.demoBlueprintName, ipPool=self.demoCustomerName+'_Loopback_IP_Pool')
-        self.blurprintResouceGroupIpLeaf(blueprintName=self.demoBlueprintName, ipPool=self.demoCustomerName+'_Loopback_IP_Pool')
-        self.blurprintResouceGroupSpineLeafLink(blueprintName=self.demoBlueprintName, ipPool=self.demoCustomerName+'_Fabric_IP_Pool')
+        response=self.blurprintResouceGroupAsnSpine(blueprintName=self.demoBlueprintName, asnPool=self.demoCustomerName+'_ASN_Pool')
+        self.responseParse(response)
+        response=self.blurprintResouceGroupAsnLeaf(blueprintName=self.demoBlueprintName, asnPool=self.demoCustomerName+'_ASN_Pool')
+        self.responseParse(response)
+        response=self.blurprintResouceGroupIpSpine(blueprintName=self.demoBlueprintName, ipPool=self.demoCustomerName+'_Loopback_IP_Pool')
+        self.responseParse(response)
+        response=self.blurprintResouceGroupIpLeaf(blueprintName=self.demoBlueprintName, ipPool=self.demoCustomerName+'_Loopback_IP_Pool')
+        self.responseParse(response)
+        response=self.blurprintResouceGroupSpineLeafLink(blueprintName=self.demoBlueprintName, ipPool=self.demoCustomerName+'_Fabric_IP_Pool')
+        self.responseParse(response)
 
     def blueprintInterfaceMapping(self):
         #Asign Physical devcie templates to logical devices
-        self.blueprintInterfaceMap(blueprintName=self.demoBlueprintName, spinePhysicalDevcie='Juniper_vQFX__AOS-7x10-Spine', leafPhysicalDevice='Juniper_vQFX__AOS-7x10-Leaf')
+        response=self.blueprintInterfaceMap(blueprintName=self.demoBlueprintName, spinePhysicalDevcie='Juniper_vQFX__AOS-7x10-Spine', leafPhysicalDevice='Juniper_vQFX__AOS-7x10-Leaf')
 
     def blueprintVrf(self):
         #Create security zone (VRF)
-        self.blueprintCreateSecurityZone(securityZoneName=self.demoSecurityZone, blueprintName=self.demoBlueprintName)
+        response=self.blueprintCreateSecurityZone(securityZoneName=self.demoSecurityZone, blueprintName=self.demoBlueprintName)
+        self.responseParse(response)
 
     def blueprintVrfLoopbacks(self):
         #Add Loopback addresses for the new VRF
-        self.blueprintAddSecurityZoneLoopbacks(securityZoneName=self.demoSecurityZone, blueprintName=self.demoBlueprintName, ipPool=self.demoCustomerName+'_Loopback_IP_Pool')
+        response=self.blueprintAddSecurityZoneLoopbacks(securityZoneName=self.demoSecurityZone, blueprintName=self.demoBlueprintName, ipPool=self.demoCustomerName+'_Loopback_IP_Pool')
+        self.responseParse(response)
 
     def blueprintVrfVni(self):
         #Add VNI to the security zone
-        self.blueprintAddSecurityZoneVNI(securityZoneName=self.demoSecurityZone, blueprintName=self.demoBlueprintName, vniPoolName=self.demoCustomerName+'_default_VNI_Pool')
+        response=self.blueprintAddSecurityZoneVNI(securityZoneName=self.demoSecurityZone, blueprintName=self.demoBlueprintName, vniPoolName=self.demoCustomerName+'_default_VNI_Pool')
+        self.responseParse(response)
 
     def virtualNetworkVxlans(self):
         #Add VXLAN VNI's
         vxlanList=[{'name':f'{self.demoCustomerName}_VNI_RED', 'ipv4Subnet':'192.168.1.0/24', 'ipv4Gateway':'192.168.1.1'}, {'name':f'{self.demoCustomerName}_VNI_BLUE', 'ipv4Subnet':'192.168.2.0/24', 'ipv4Gateway':'192.168.2.1'}]
         for vxlan in vxlanList:
-            self.blueprintAddVirtualNetworks(blueprintName=self.demoBlueprintName, virtualNetworkName=vxlan['name'], securityZoneName=self.demoSecurityZone, \
+            response=self.blueprintAddVirtualNetworks(blueprintName=self.demoBlueprintName, virtualNetworkName=vxlan['name'], securityZoneName=self.demoSecurityZone, \
                 ipv4Subnet=vxlan['ipv4Subnet'], ipv4Gateway=vxlan['ipv4Gateway'])
+            self.responseParse(response)
 
     def virtualNetworkVni(self):
         #Assign VNI pool to the virtual VXLAN networks
-        self.blueprintAddVxlanVniPool(blueprintName=self.demoBlueprintName, vniPoolName=self.demoCustomerName+'_default_VNI_Pool')
-
+        response=self.blueprintAddVxlanVniPool(blueprintName=self.demoBlueprintName, vniPoolName=self.demoCustomerName+'_default_VNI_Pool')
+        self.responseParse(response)
+        
     def onboardDevices(self):
         #Onboard Devices
-        self.offboxOnboarding(username='root', password='Juniper!1', platform='junos', \
+        responseAll=self.offboxOnboarding(username='root', password='Juniper!1', platform='junos', \
                 mgmtIpList=['100.123.13.201', '100.123.13.202', '100.123.13.203', '100.123.13.204'])
+        for response in responseAll:
+            self.responseParse(response)
 
     def ackAllDevices(self):
         #Ack All Devices
         self.ackManagedDevicesAll()
+        self.customSuccess(response="\n     All Devices Acknowledged\n")
+
+    def responseParse(self, response):
+        try:
+            if 'errors' in response.json():
+                self.customError(response)
+            else:
+                self.customSuccess(response)
+        except json.JSONDecodeError as e:
+            self.customError(response=e)
+
+    def customError(self, response: bytes) -> print:
+        print("#" * 120)
+        if isinstance(response, requests.models.Response):
+            print(f"""\n[bold red]Error[/]:\n     {str(response.json()['errors'])} \n     {response.reason} \n     {response.text} \n     {response.url} \n     {response.status_code}\n""")
+        elif isinstance(response, str):
+            print(f'''[bold red]Error[/]:\n     {response}''')
+        elif isinstance(response, dict):
+            print(f'''\n[bold red]Error: YAML Input Issue[/]\n     {json.dumps(response, indent=4)}\n''')
+        print("#" * 120)
+        print('\n')
+
+    def customSuccess(self, response: bytes) -> print:
+        print("#" * 120)
+        if isinstance(response, requests.models.Response):
+            print(f"""\n[bold green]Success[/]:\n     {response.reason} \n     {response.text} \n     {response.url} \n     {response.status_code}\n""")
+        elif isinstance(response, str):
+            print(f"""\n[bold green]Success[/]:\n     {response}""")    
+        print("#" * 120)
+        print('\n')
 
     def jclProvision(self, customerName: str) -> None:
         """Create the entire JCL testbed in one easy python call.
@@ -141,7 +193,7 @@ class jcl(apstraClass.apstra):
         self.demoAsnPool(poolName=self.demoCustomerName+'_ASN_Pool', firstAsn=65000, lastAsn=65500)
         #Little snooze
         time.sleep(1)
-        #Create IP Pools
+        # Create IP Pools
         ipPoolList=[{'name':'Fabric', 'subnet':'10.0.0.0/24'}, {'name':'Loopback', 'subnet':'172.16.0.0/24'}]
         for ipPool in ipPoolList:
             self.demoIpPool(poolName=self.demoCustomerName+'_'+ipPool['name']+'_IP_Pool', network=ipPool['subnet'])

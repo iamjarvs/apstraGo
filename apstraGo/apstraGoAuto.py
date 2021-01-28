@@ -7,10 +7,12 @@ try:
 except ModuleNotFoundError as e:
     pass
 import argparse
-import pprint
 
-def main(argv=None):
+def main(argv: bytes=None) -> None:
     """vLabs/JCL quick spinup
+
+    Print logic is help in JCL Provison Class
+
     """    
 
     parser = argparse.ArgumentParser(description='')

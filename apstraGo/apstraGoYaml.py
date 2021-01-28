@@ -5,6 +5,7 @@ Useful for demos
 
 """
 from cerberus import Validator
+from rich import print
 try:
     from jclClass import jcl
 except ModuleNotFoundError as e:
@@ -21,6 +22,11 @@ import os
 import json
 
 def yamlValidateFilePath() -> str:
+    """Sets up path to data file in package
+
+    Returns:
+        str: path to data file
+    """    
     this_dir, this_filename = os.path.split(__file__)
     return os.path.join(this_dir, "data", "yamlData.py")
 
@@ -41,13 +47,22 @@ def loadYaml(filepath: str) -> dict:
             exit(1)
     return inputDict
 
-def yamlValidate(inputDict: dict, yamlValidateFilename: str):
+def yamlValidate(inputDict: dict, yamlValidateFilename: str) -> None:
+    """Validates the user input YAML with template
+
+    Args:
+        inputDict (dict): User YAML Dict input
+        yamlValidateFilename (str): YAML allowed values template
+    """    
+    
+    #Open YAML validation file
     try:
         schema = eval(open(yamlValidateFilename, 'r').read())
     except (ValueError, SyntaxError) as e:
         customError(response=e)
         exit(1)
     
+    #Compared input with allowed values
     try:
         v = Validator(schema)
         v.validate(inputDict, schema)
@@ -55,6 +70,7 @@ def yamlValidate(inputDict: dict, yamlValidateFilename: str):
         customError(response=e)
         exit(1)
 
+    #Print and exit on error
     if bool(v.errors) is not False:
         customError(response=v.errors)
         exit(1)
@@ -97,7 +113,13 @@ def login(inputDict: dict) -> bytes:
         customSuccess(response)
         return con
 
-def inputProcess(inputDict, con):
+def inputProcess(inputDict: dict, con: bytes) -> None:
+    """Checks YAML doc sections
+
+    Args:
+        inputDict (dict): User YAML input
+        con (bytes): JCL class instance object
+    """    
     
     if 'resourcePools' in inputDict['apstrago']:
         resourcePools(inputs=inputDict['apstrago']['resourcePools'], con=con)
@@ -114,7 +136,13 @@ def inputProcess(inputDict, con):
     if 'devices' in inputDict['apstrago']:
         addDevices(inputs=inputDict['apstrago']['devices'], con=con)
 
-def resourcePools(inputs, con):
+def resourcePools(inputs: dict, con: bytes) -> None:
+    """Creates Resource Pools if correct config present
+
+    Args:
+        inputDict (dict): User YAML input
+        con (bytes): JCL class instance object
+    """    
     if 'asnPools' in inputs:
         for item in inputs['asnPools']:
             response = con.resourceAsnCreate(poolName=item['poolName'], firstAsn=item['firstASN'], \
@@ -143,7 +171,13 @@ def resourcePools(inputs, con):
             else:
                 customSuccess(response)
 
-def rackCreation(inputs, con):
+def rackCreation(inputs: dict, con:bytes) -> None:
+    """Creates racks if config present
+
+    Args:
+        inputDict (dict): User YAML input
+        con (bytes): JCL class instance object
+    """    
     for item in inputs:
         response = con.createDesignSimpleRack(rackTypeName=item['rackName'], rackTypeDesc=item.get('rackTypeDesc') or None, \
                         connectivityType=item.get('connectivityType') or None, leafName=item.get('leafName') or None, \
@@ -159,7 +193,13 @@ def rackCreation(inputs, con):
         else:
             customSuccess(response)
 
-def templateCreation(inputs, con):
+def templateCreation(inputs: dict, con: bytes) -> None:
+    """Creates  DC templates if correct config present
+
+    Args:
+        inputDict (dict): User YAML input
+        con (bytes): JCL class instance object
+    """    
     for item in inputs:
         response = con.designDemoTemplate(templateName=item['templateName'], spineLogicalDeviceId=item['spineLogicalDeviceId'], \
                         rackTypeList=item['rackTypeList'], spineCount=item.get('spineCount') or None, ipChoice=item.get('ipChoice') or None, \
@@ -170,7 +210,13 @@ def templateCreation(inputs, con):
         else:
             customSuccess(response)
 
-def blueprintCreation(inputs, con):
+def blueprintCreation(inputs: dict, con: bytes) -> None:
+    """Creates blueprints if correct config present
+
+    Args:
+        inputDict (dict): User YAML input
+        con (bytes): JCL class instance object
+    """    
     for item in inputs:
         response = con.blueprintCreate(blueprintName=item['name'], templateName=item['templateName'])
 
@@ -179,7 +225,13 @@ def blueprintCreation(inputs, con):
         else:
             customSuccess(response)
 
-def addDevices(inputs, con):
+def addDevices(inputs: dict, con: bytes) -> None:
+    """Creates devices if correct config present
+
+    Args:
+        inputDict (dict): User YAML input
+        con (bytes): JCL class instance object
+    """    
     responseAll = con.offboxOnboarding(username=inputs['username'], password=inputs['password'], platform=inputs['platform'], \
                 agent_type=inputs.get('agentType') or 'offbox', operation_mode=inputs.get('operationMode') or 'full_control', \
                 mgmtIpList=inputs['addresses'])
@@ -194,11 +246,17 @@ def addDevices(inputs, con):
         if inputs['acknowledge'] == True:
             time.sleep(18)
             responseAllAck = con.ackManagedDevicesAll()
-            customSuccess(response="\nAll Devices Acknowledged\n")
+            customSuccess(response="\n     All Devices Acknowledged\n")
 
-def cli(argv=None):
-    """vLabs/JCL quick spinup
-    """    
+def cli(argv: bytes=None) -> dict:
+    """Args Parse for user input
+
+    Args:
+        argv (str, required): Apstra YAML Config File. Defaults to None.
+
+    Returns:
+        dict: Dict of args
+    """
     parser = argparse.ArgumentParser(description='')
     parser.add_argument('-f', '--filename',
                         required=True,
@@ -207,27 +265,39 @@ def cli(argv=None):
     args = parser.parse_args(argv)
     return args
 
-def customError(response):
-    print("#" * 80)
+def customError(response: bytes) -> None:
+    """Print Error to console
+
+    Args:
+        response (bytes): Error Data
+    """    
+    print("#" * 120)
     if isinstance(response, requests.models.Response):
-        print(f"""\nError:\n     {str(response.json()['errors'])} \n     {response.reason} \n     {response.text} \n     {response.url} \n     {response.status_code}\n""")
+        print(f"""\n[bold red]Error[/]:\n     {str(response.json()['errors'])} \n     {response.reason} \n     {response.text} \n     {response.url} \n     {response.status_code}\n""")
     elif isinstance(response, str):
-        print(f'''{response}''')
+        print(f'''[bold red]Error[/]:\n     {response}''')
     elif isinstance(response, dict):
-        print(f'''\nError: YAML Input Issue\n     {json.dumps(response, indent=4)}\n''')
-    print("#" * 80)
+        print(f'''\n[bold red]Error: YAML Input Issue[/]\n     {json.dumps(response, indent=4)}\n''')
+    print("#" * 120)
     print('\n')
 
-def customSuccess(response):
-    print("#" * 80)
+def customSuccess(response: bytes) -> None:
+    """Print msg to console
+
+    Args:
+        response (bytes): Msg Data
+    """    
+    print("#" * 120)
     if isinstance(response, requests.models.Response):
-        print(f"""\nSuccess:\n     {response.reason} \n     {response.text} \n     {response.url} \n     {response.status_code}\n""")
+        print(f"""\n[bold green]Success[/]:\n     {response.reason} \n     {response.text} \n     {response.url} \n     {response.status_code}\n""")
     elif isinstance(response, str):
-        print(response)    
-    print("#" * 80)
+        print(f"""\n[bold green]Success[/]:\n     {response}""")    
+    print("#" * 120)
     print('\n')
 
 def main():
+    """Main callable function
+    """    
     args=cli()
     yamlValidateFilename=yamlValidateFilePath()
     inputDict=loadYaml(filepath=args.filename)

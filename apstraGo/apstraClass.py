@@ -1,9 +1,6 @@
 """
 TODO:
-
     - Create configlet
-
-    - Create YAML Upload
 
 """
 import requests
@@ -166,7 +163,7 @@ class apstra():
 
         Returns:
             bytes: Request response object
-        """        
+        """
         url = self.baseUrl + self.urlAsnPool
         data = f''' {{ "display_name": "{poolName}",
                         "id": "{poolName}",
@@ -792,7 +789,7 @@ class apstra():
 
         '''
         response = self.urlRequest(url=url, method='POST', data=data)
-        return response.json()
+        return response
 
     def blueprintGetSecurityZone(self, blueprintName: str) -> dict:
         """Get info on all security zones
@@ -805,7 +802,7 @@ class apstra():
         """  
         url = self.baseUrl + self.blueprints + '/' + blueprintName + self.blueprintSecurityZone
         response = self.urlRequest(url=url, method='GET')
-        return response.json()
+        return response
 
     def blueprintAddSecurityZoneLoopbacks(self, securityZoneName: str, blueprintName: str, ipPool: str) -> dict:
         """Add loopback pool to security zone
@@ -819,7 +816,8 @@ class apstra():
             dict: Request response of ID
         """  
         szId=None
-        securityZones = self.blueprintGetSecurityZone(blueprintName)
+        responses = self.blueprintGetSecurityZone(blueprintName)
+        securityZones = responses.json()
         for key, value in securityZones['items'].items():
             if value['vrf_name'] == securityZoneName:
                 szId=value['id']
@@ -833,7 +831,7 @@ class apstra():
         url = self.baseUrl + self.blueprints + '/' + blueprintName + self.blueprintsResouceGroup + '/ip/' + leafLoopback
 
         response = self.urlRequest(url=url, method='PUT', data=data)
-        return response.json()
+        return response
 
     def blueprintAddSecurityZoneVNI(self, securityZoneName: str, blueprintName: str, vniPoolName: str) -> dict:
         """Add VNI pool to security zone
@@ -853,7 +851,7 @@ class apstra():
         url = self.baseUrl + self.blueprints + '/' + blueprintName + self.blueprintsResouceGroupVni
 
         response = self.urlRequest(url=url, method='PUT', data=data)
-        return response.json()
+        return response
 
     #Virtual Networks
     def blueprintAddVirtualNetworks(self, blueprintName: str, virtualNetworkName: str, securityZoneName: str, ipv4Subnet: str = 'null', ipv4Gateway: str = 'null') -> dict:
@@ -882,7 +880,8 @@ class apstra():
         
         #Security Zone ID needed to add virtual networks
         szId=None
-        securityZones = self.blueprintGetSecurityZone(blueprintName)
+        responses = self.blueprintGetSecurityZone(blueprintName)
+        securityZones = responses.json()
         for key, value in securityZones['items'].items():
             if value['vrf_name'] == securityZoneName:
                 szId=value['id']
@@ -917,7 +916,7 @@ class apstra():
 
             '''
         response = self.urlRequest(url=url, method='POST', data=data)
-        return response.json()
+        return response
 
     def blueprintAddVxlanVniPool(self, blueprintName: str, vniPoolName: str) -> dict:
         """Add VNI pool to virtual network
@@ -934,7 +933,7 @@ class apstra():
         '''
         url = self.baseUrl + self.blueprints + '/' + blueprintName + self.blueprintsResouceGroup + '/vni/vxlan_vn_ids'
         response = self.urlRequest(url=url, method='PUT', data=data)
-        return response.json()
+        return response
 
 
     """
