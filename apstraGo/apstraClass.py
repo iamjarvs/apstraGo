@@ -871,12 +871,14 @@ class apstra():
             dict: Request Response ID
         """        
         response = self.blueprintDeviceIdGet(blueprintName)
+        print(response)
         deviceList=[]
         for device in response:
             if device['role'] == 'leaf':
-                deviceList.append('"system_id": "'+device['id']+'"')
+                deviceList.append('{"system_id": "'+device['id']+'"}')
 
         deviceListJson=','.join(set(deviceList))
+        print(deviceList)
         
         #Security Zone ID needed to add virtual networks
         szId=None
@@ -902,9 +904,7 @@ class apstra():
                             "vn_type": "vxlan",
                             "virtual_gateway_ipv4": {ipv4Gateway},
                             "bound_to": [
-                                {{
                                     {deviceListJson}
-                                }}
                             ],
                             "ipv4_subnet": {ipv4Subnet},
                             "label": "{virtualNetworkName}",
@@ -915,6 +915,7 @@ class apstra():
                 }}
 
             '''
+        print(data)
         response = self.urlRequest(url=url, method='POST', data=data)
         return response
 
