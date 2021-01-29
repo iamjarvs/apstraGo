@@ -871,14 +871,12 @@ class apstra():
             dict: Request Response ID
         """        
         response = self.blueprintDeviceIdGet(blueprintName)
-        print(response)
         deviceList=[]
         for device in response:
             if device['role'] == 'leaf':
                 deviceList.append('{"system_id": "'+device['id']+'"}')
 
         deviceListJson=','.join(set(deviceList))
-        print(deviceList)
         
         #Security Zone ID needed to add virtual networks
         szId=None
@@ -915,7 +913,6 @@ class apstra():
                 }}
 
             '''
-        print(data)
         response = self.urlRequest(url=url, method='POST', data=data)
         return response
 
