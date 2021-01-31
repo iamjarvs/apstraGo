@@ -43,7 +43,7 @@ def loadYaml(filepath: str) -> dict:
         try:
             inputDict=yaml.safe_load(stream)
         except yaml.YAMLError as e:
-            self.customError(errorInfo=e)
+            con.customError(errorInfo=e)
             exit(1)
     return inputDict
 
@@ -59,7 +59,7 @@ def yamlValidate(inputDict: dict, yamlValidateFilename: str) -> None:
     try:
         schema = eval(open(yamlValidateFilename, 'r').read())
     except (ValueError, SyntaxError) as e:
-        self.customError(response=e)
+        con.customError(response=e)
         exit(1)
     
     #Compared input with allowed values
@@ -67,15 +67,15 @@ def yamlValidate(inputDict: dict, yamlValidateFilename: str) -> None:
         v = Validator(schema)
         v.validate(inputDict, schema)
     except Exception as e:
-        self.customError(response=e)
+        con.customError(response=e)
         exit(1)
 
     #Print and exit on error
     if bool(v.errors) is not False:
-        self.customError(response=v.errors)
+        con.customError(response=v.errors)
         exit(1)
 
-def login(inputDict: dict) -> bytes:
+def login(inputDict: dict, con: bytes) -> bytes:
     """Checks login details exist and creates instance of Apstra Class
 
     Args:
@@ -84,22 +84,21 @@ def login(inputDict: dict) -> bytes:
     Returns:
         btyes: Returns Apstra instance object
     """    
-    
+
     if "login" not in inputDict['apstrago']:
-        self.customError(response="\nLogin Section Missing From YAML File\n")
+        con.customError(response="\nLogin Section Missing From YAML File\n")
         exit(1)    
     if "username" not in inputDict['apstrago']['login']:
-        self.customError(response="\nUsername Missing From Login Section In YAML File\n")
+        con.customError(response="\nUsername Missing From Login Section In YAML File\n")
         exit(1)
     if "password" not in inputDict['apstrago']['login']:
-        self.customError(response="\nPassword Missing From Login Section In YAML File\n")
+        con.customError(response="\nPassword Missing From Login Section In YAML File\n")
         print('error')
         exit(1)
     if "address" not in inputDict['apstrago']['login']:
-        self.customError(response="\nAddress Missing From Login Section In YAML File\n")
+        con.customError(response="\nAddress Missing From Login Section In YAML File\n")
         exit(1)
 
-    con = jcl()
     response = con.login(username=inputDict['apstrago']['login']['username'], \
                 password=inputDict['apstrago']['login']['password'], \
                 address=inputDict['apstrago']['login']['address'], \
@@ -107,10 +106,10 @@ def login(inputDict: dict) -> bytes:
                 customerName=inputDict['apstrago'].get('customerName'))
 
     if 'errors' in response.json():
-        self.customError(response)
+        con.customError(response)
         exit(1)
     else:
-        self.customSuccess(response)
+        con.customSuccess(response)
         return con
 
 def inputProcess(inputDict: dict, con: bytes) -> None:
@@ -149,27 +148,27 @@ def resourcePools(inputs: dict, con: bytes) -> None:
                     lastAsn=item['lastASN'])
 
             if 'errors' in response.json():
-                self.customError(response)
+                con.customError(response)
             else:
-                self.customSuccess(response)
+                con.customSuccess(response)
 
     if 'ipPools' in inputs:
         for item in inputs['ipPools']:
             response = con.resourceIpCreate(poolName=item['poolName'], network=item['network'])
 
             if 'errors' in response.json():
-                self.customError(response)
+                con.customError(response)
             else:
-                self.customSuccess(response)
+                con.customSuccess(response)
 
     if 'vniPools' in inputs:
         for item in inputs['vniPools']:
             response = con.resourceVniCreate(poolName=item['poolName'], firstVni=item['firstVNI'], lastVni=item['lastVNI'])
 
             if 'errors' in response.json():
-                self.customError(response)
+                con.customError(response)
             else:
-                self.customSuccess(response)
+                con.customSuccess(response)
 
 def rackCreation(inputs: dict, con:bytes) -> None:
     """Creates racks if config present
@@ -189,9 +188,9 @@ def rackCreation(inputs: dict, con:bytes) -> None:
                         LeafServerLinkSpeedValue=item.get('LeafServerLinkSpeedValue') or None, linksPerLeafCount=item.get('linksPerLeafCount') or None)
 
         if 'errors' in response.json():
-            self.customError(response)
+            con.customError(response)
         else:
-            self.customSuccess(response)
+            con.customSuccess(response)
 
 def templateCreation(inputs: dict, con: bytes) -> None:
     """Creates  DC templates if correct config present
@@ -206,9 +205,9 @@ def templateCreation(inputs: dict, con: bytes) -> None:
                         asnAllocation=item.get('asnAllocation') or None, overlayControl=item.get('overlayControl') or None)
         
         if 'errors' in response.json():
-            self.customError(response)
+            con.customError(response)
         else:
-            self.customSuccess(response)
+            con.customSuccess(response)
 
 def blueprintCreation(inputs: dict, con: bytes) -> None:
     """Creates blueprints if correct config present
@@ -221,9 +220,9 @@ def blueprintCreation(inputs: dict, con: bytes) -> None:
         response = con.blueprintCreate(blueprintName=item['name'], templateName=item['templateName'])
 
         if 'errors' in response.json():
-            self.customError(response)
+            con.customError(response)
         else:
-            self.customSuccess(response)
+            con.customSuccess(response)
 
 def addDevices(inputs: dict, con: bytes) -> None:
     """Creates devices if correct config present
@@ -238,15 +237,15 @@ def addDevices(inputs: dict, con: bytes) -> None:
 
     for response in responseAll:
         if 'errors' in response.json():
-            self.customError(response)
+            con.customError(response)
         else:
-            self.customSuccess(response)
+            con.customSuccess(response)
 
     if 'acknowledge' in inputs:
         if inputs['acknowledge'] == True:
             time.sleep(18)
             responseAllAck = con.ackManagedDevicesAll()
-            self.customSuccess(response="\n     All Devices Acknowledged\n")
+            con.customSuccess(response="\n     All Devices Acknowledged\n")
 
 def cli(argv: bytes=None) -> dict:
     """Args Parse for user input
@@ -268,11 +267,12 @@ def cli(argv: bytes=None) -> dict:
 def main():
     """Main callable function
     """    
+    con = jcl()
     args=cli()
     yamlValidateFilename=yamlValidateFilePath()
     inputDict=loadYaml(filepath=args.filename)
     yamlValidate(inputDict, yamlValidateFilename)
-    con=login(inputDict)
+    login(inputDict, con)
     inputProcess(inputDict, con)
 
 if __name__ == "__main__":
