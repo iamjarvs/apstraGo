@@ -874,7 +874,7 @@ class apstra():
         deviceList=[]
         for device in response:
             if device['role'] == 'leaf':
-                deviceList.append('"system_id": "'+device['id']+'"')
+                deviceList.append('{"system_id": "'+device['id']+'"}')
 
         deviceListJson=','.join(set(deviceList))
         
@@ -902,9 +902,7 @@ class apstra():
                             "vn_type": "vxlan",
                             "virtual_gateway_ipv4": {ipv4Gateway},
                             "bound_to": [
-                                {{
                                     {deviceListJson}
-                                }}
                             ],
                             "ipv4_subnet": {ipv4Subnet},
                             "label": "{virtualNetworkName}",
