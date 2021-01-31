@@ -3,7 +3,7 @@ from setuptools import find_packages
 
 setup(
     name='apstraGo',
-    version='1.1.0',
+    version='1.2.0',
     description='Python wrapper for Apstra OS',
     author='Adam Jarvis',
     url='https://github.com/iamjarvs/apstraGo',
