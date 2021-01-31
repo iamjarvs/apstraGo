@@ -1,5 +1,10 @@
-from rich import print
-# from json import JSONDecodeError
+"""
+==========================================
+ Title:  ApstraGo
+ Author: Adam Jarvis
+ Date:   2021
+==========================================
+"""
 import json
 try:
     import apstraClass
@@ -114,6 +119,39 @@ class jcl(apstraClass.apstra):
         response=self.blueprintAddSecurityZoneLoopbacks(securityZoneName=self.demoSecurityZone, blueprintName=self.demoBlueprintName, ipPool=self.demoCustomerName+'_Loopback_IP_Pool')
         self.responseParse(response)
 
+    def blueprintPhysicalAssignment(self):
+
+        responseBlueprint=self.blueprintInfoGet(blueprintName=self.demoBlueprintName)
+        responseDevices=self.systemsGet()
+
+        for key, value in responseBlueprint.json()['nodes'].items():
+            device = value.get('role')
+            if device != None:
+                if 'spine1' in value['label'] and value.get('system_type') == 'switch':
+                    for sysDevice in responseDevices.json()['items']:
+                        if sysDevice['facts']['mgmt_ipaddr'] == '100.123.13.201':
+                            response=self.blueprintPhysicalDevcieAssignment(blueprintName=self.demoBlueprintName, \
+                                        blueprintDeviceId=value['id'], deviceSN=sysDevice['device_key'])
+                            self.responseParse(response)
+                elif 'spine2' in value['label'] and value.get('system_type') == 'switch':
+                    for sysDevice in responseDevices.json()['items']:
+                        if sysDevice['facts']['mgmt_ipaddr'] == '100.123.13.202':
+                            response=self.blueprintPhysicalDevcieAssignment(blueprintName=self.demoBlueprintName, \
+                                        blueprintDeviceId=value['id'], deviceSN=sysDevice['device_key'])
+                            self.responseParse(response)
+                elif '1leaf1server' in value['label'] and value.get('system_type') == 'switch':
+                    for sysDevice in responseDevices.json()['items']:
+                        if sysDevice['facts']['mgmt_ipaddr'] == '100.123.13.203':
+                            response=self.blueprintPhysicalDevcieAssignment(blueprintName=self.demoBlueprintName, \
+                                        blueprintDeviceId=value['id'], deviceSN=sysDevice['device_key'])
+                            self.responseParse(response)
+                elif '1leaf2server' in value['label'] and value.get('system_type') == 'switch':
+                    for sysDevice in responseDevices.json()['items']:
+                        if sysDevice['facts']['mgmt_ipaddr'] == '100.123.13.204':
+                            response=self.blueprintPhysicalDevcieAssignment(blueprintName=self.demoBlueprintName, \
+                                        blueprintDeviceId=value['id'], deviceSN=sysDevice['device_key'])
+                            self.responseParse(response)
+
     def blueprintVrfVni(self):
         #Add VNI to the security zone
         response=self.blueprintAddSecurityZoneVNI(securityZoneName=self.demoSecurityZone, blueprintName=self.demoBlueprintName, vniPoolName=self.demoCustomerName+'_default_VNI_Pool')
@@ -121,7 +159,7 @@ class jcl(apstraClass.apstra):
 
     def virtualNetworkVxlans(self):
         #Add VXLAN VNI's
-        vxlanList=[{'name':f'{self.demoCustomerName}_VNI_RED', 'ipv4Subnet':'192.168.1.0/24', 'ipv4Gateway':'192.168.1.1'}, {'name':f'{self.demoCustomerName}_VNI_BLUE', 'ipv4Subnet':'192.168.2.0/24', 'ipv4Gateway':'192.168.2.1'}]
+        vxlanList=[{'name':f'{self.demoCustomerName}_VN1', 'ipv4Subnet':'192.168.100.0/24', 'ipv4Gateway':'192.168.100.1'}, {'name':f'{self.demoCustomerName}_VN2', 'ipv4Subnet':'192.168.200.0/24', 'ipv4Gateway':'192.168.200.1'}]
         for vxlan in vxlanList:
             response=self.blueprintAddVirtualNetworks(blueprintName=self.demoBlueprintName, virtualNetworkName=vxlan['name'], securityZoneName=self.demoSecurityZone, \
                 ipv4Subnet=vxlan['ipv4Subnet'], ipv4Gateway=vxlan['ipv4Gateway'])
@@ -152,26 +190,6 @@ class jcl(apstraClass.apstra):
                 self.customSuccess(response)
         except json.JSONDecodeError as e:
             self.customError(response=e)
-
-    def customError(self, response: bytes) -> print:
-        print("#" * 120)
-        if isinstance(response, requests.models.Response):
-            print(f"""\n[bold red]Error[/]:\n     {str(response.json()['errors'])} \n     {response.reason} \n     {response.text} \n     {response.url} \n     {response.status_code}\n""")
-        elif isinstance(response, str):
-            print(f'''[bold red]Error[/]:\n     {response}''')
-        elif isinstance(response, dict):
-            print(f'''\n[bold red]Error: YAML Input Issue[/]\n     {json.dumps(response, indent=4)}\n''')
-        print("#" * 120)
-        print('\n')
-
-    def customSuccess(self, response: bytes) -> print:
-        print("#" * 120)
-        if isinstance(response, requests.models.Response):
-            print(f"""\n[bold green]Success[/]:\n     {response.reason} \n     {response.text} \n     {response.url} \n     {response.status_code}\n""")
-        elif isinstance(response, str):
-            print(f"""\n[bold green]Success[/]:\n     {response}""")    
-        print("#" * 120)
-        print('\n')
 
     def jclProvision(self, customerName: str) -> None:
         """Create the entire JCL testbed in one easy python call.
@@ -250,8 +268,10 @@ class jcl(apstraClass.apstra):
         time.sleep(20)
         #Ack All Devices
         self.ackAllDevices()
-
-     
+        #Quick snooze 
+        time.sleep(5)
+        #Assign physical devices to blueprint
+        self.blueprintPhysicalAssignment()
 
 if __name__ == "__main__":
     pass

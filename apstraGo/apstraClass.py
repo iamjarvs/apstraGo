@@ -1,4 +1,9 @@
 """
+==========================================
+ Title:  ApstraGo
+ Author: Adam Jarvis
+ Date:   2021
+==========================================
 TODO:
     - Create configlet
 
@@ -6,7 +11,7 @@ TODO:
 import requests
 import time
 import json
-
+from rich import print
 requests.packages.urllib3.disable_warnings() #Supress SSL verify warnings
 response = requests.models.Response #python typing
  
@@ -71,16 +76,16 @@ class apstra():
 
         Returns:
             bytes: Request response object
-        """        
-        # print(f'\n\n{url}')
+        """ 
 
         try:
             if self.apiToken == None:
                 headers = { 'Content-Type':"application/json", 'Cache-Control':"no-cache" }
                 data = '{ \"username\":\"' + self.username + '\", \"password\":\"' + self.password + '\" }'
                 response = requests.request(f"{method}", url, data=data, headers=headers, verify=False, timeout=10) 
-                return response
-
+                if response.raise_for_status() == False:
+                    raise requests.exceptions.RequestException
+                
             elif method == 'GET':
                 headers = { 'Content-Type':"application/json", 'Cache-Control':"no-cache", 'AUTHTOKEN':f"{self.apiToken}"}
                 response = requests.request("GET", url, data=data, headers=headers, verify=False, timeout=10) 
@@ -97,11 +102,17 @@ class apstra():
                 headers = { 'Content-Type':"application/json", 'Cache-Control':"no-cache", 'AUTHTOKEN':f"{self.apiToken}"}
                 response = requests.request("PUT", url, data=data, headers=headers, verify=False, timeout=10) 
 
-            # print(f'{response.status_code} \n\n')
+            elif method == 'PATCH':
+                headers = { 'Content-Type':"application/json", 'Cache-Control':"no-cache", 'AUTHTOKEN':f"{self.apiToken}"}
+                response = requests.request("PATCH", url, data=data, headers=headers, verify=False, timeout=10)
 
             return response
         except requests.exceptions.RequestException as e:
-            raise SystemExit(e)
+            self.customError(response=str(e))
+            exit(1)
+        except requests.exceptions.Timeout as e:
+            self.customError(response=str(e))
+            exit(1)
 
 
     """
@@ -126,6 +137,7 @@ class apstra():
         self.port=str(kwargs['port'])
         self.createBaseUrl()
         response = self.getApiToken()
+        self.customSuccess(response=response)
         return response
 
     def getApiToken(self):
@@ -138,7 +150,6 @@ class apstra():
         self.apiToken = None
         response = self.urlRequest(url=loginUrl, method='POST')
         self.apiToken = response.json()['token']
-        print(f"API Token: {self.apiToken}")
         return response
         
     def createBaseUrl(self):
@@ -738,6 +749,22 @@ class apstra():
 
         return idList
 
+    def blueprintInfoGet(self, blueprintName: str) -> bytes:
+        """Blueprint Physical Devcie Assignment
+
+        Args:
+            blueprintName (str): Name of blueprint
+            templateName (str): Name of DC template to use with blueprint
+            designType (str, optional): Type of blueprint design. Defaults to 'two_stage_l3clos'.
+
+        Returns:
+            bytes: Request response
+        """        
+        url = self.baseUrl + self.blueprints + '/' + blueprintName
+
+        response = self.urlRequest(url=url, method='GET')
+        return response
+
     def blueprintInterfaceMap(self, blueprintName: str, spinePhysicalDevcie: str, leafPhysicalDevice: str) -> bytes:
         """Asign the interface mapping of logical devices to physical device models
 
@@ -767,6 +794,26 @@ class apstra():
 
         response = self.urlRequest(url=url, method='PUT', data=data)
         return response
+    
+    def blueprintPhysicalDevcieAssignment(self, blueprintName: str, blueprintDeviceId: str, deviceSN: str):
+        """Blueprint Physical Devcie Assignment
+
+        Args:
+            blueprintName (str): Name of blueprint
+            templateName (str): Name of DC template to use with blueprint
+            designType (str, optional): Type of blueprint design. Defaults to 'two_stage_l3clos'.
+
+        Returns:
+            bytes: Request response
+        """  
+        url = self.baseUrl + self.blueprints + '/' + blueprintName + '/nodes/' + blueprintDeviceId
+        data = f'''
+            {{"system_id":"{deviceSN}"}}
+        '''
+
+        response = self.urlRequest(url=url, method='PATCH', data=data)
+        return response
+    
     #Security Zones
     def blueprintCreateSecurityZone(self, securityZoneName: str, blueprintName: str) -> bytes:
         """Create a security zone within a blueprint
@@ -937,11 +984,22 @@ class apstra():
     """
     Error Catch
     """
-    def catchErrors(self, response: bytes) -> None:
-        """May be used to print errors from JSON return
+    def customError(self, response: bytes) -> print:
+        print("#" * 120)
+        if isinstance(response, requests.models.Response):
+            print(f"""\n[bold red]Error[/]:\n     {str(response.json()['errors'])} \n     {response.reason} \n     {response.text} \n     {response.url} \n     {response.status_code}\n""")
+        elif isinstance(response, str):
+            print(f'''[bold red]Error[/]:\n     {response}''')
+        elif isinstance(response, dict):
+            print(f'''\n[bold red]Error: YAML Input Issue[/]\n     {json.dumps(response, indent=4)}\n''')
+        print("#" * 120)
+        print('\n')
 
-        Args:
-            response (bytes): Response from a URI request
-        """        
-        if 'errors' in response.json():
-            print(response.json())
+    def customSuccess(self, response: bytes) -> print:
+        print("#" * 120)
+        if isinstance(response, requests.models.Response):
+            print(f"""\n[bold green]Success[/]:\n     {response.reason} \n     {response.text} \n     {response.url} \n     {response.status_code}\n""")
+        elif isinstance(response, str):
+            print(f"""\n[bold green]Success[/]:\n     {response}""")    
+        print("#" * 120)
+        print('\n')
