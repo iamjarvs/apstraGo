@@ -154,7 +154,7 @@ class jcl(apstraClass.apstra):
 
     def virtualNetworkVxlans(self):
         #Add VXLAN VNI's
-        vxlanList=[{'name':f'{self.demoCustomerName}_VNI_RED', 'ipv4Subnet':'192.168.1.0/24', 'ipv4Gateway':'192.168.1.1'}, {'name':f'{self.demoCustomerName}_VNI_BLUE', 'ipv4Subnet':'192.168.2.0/24', 'ipv4Gateway':'192.168.2.1'}]
+        vxlanList=[{'name':f'{self.demoCustomerName}_VN1', 'ipv4Subnet':'192.168.100.0/24', 'ipv4Gateway':'192.168.100.1'}, {'name':f'{self.demoCustomerName}_VN2', 'ipv4Subnet':'192.168.200.0/24', 'ipv4Gateway':'192.168.200.1'}]
         for vxlan in vxlanList:
             response=self.blueprintAddVirtualNetworks(blueprintName=self.demoBlueprintName, virtualNetworkName=vxlan['name'], securityZoneName=self.demoSecurityZone, \
                 ipv4Subnet=vxlan['ipv4Subnet'], ipv4Gateway=vxlan['ipv4Gateway'])
