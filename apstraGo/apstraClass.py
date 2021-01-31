@@ -97,6 +97,10 @@ class apstra():
                 headers = { 'Content-Type':"application/json", 'Cache-Control':"no-cache", 'AUTHTOKEN':f"{self.apiToken}"}
                 response = requests.request("PUT", url, data=data, headers=headers, verify=False, timeout=10) 
 
+            elif method == 'PATCH':
+                headers = { 'Content-Type':"application/json", 'Cache-Control':"no-cache", 'AUTHTOKEN':f"{self.apiToken}"}
+                response = requests.request("PATCH", url, data=data, headers=headers, verify=False, timeout=10) 
+
             # print(f'{response.status_code} \n\n')
 
             return response
@@ -738,6 +742,22 @@ class apstra():
 
         return idList
 
+    def blueprintInfoGet(self, blueprintName: str) -> bytes:
+        """Blueprint Physical Devcie Assignment
+
+        Args:
+            blueprintName (str): Name of blueprint
+            templateName (str): Name of DC template to use with blueprint
+            designType (str, optional): Type of blueprint design. Defaults to 'two_stage_l3clos'.
+
+        Returns:
+            bytes: Request response
+        """        
+        url = self.baseUrl + self.blueprints + '/' + blueprintName
+
+        response = self.urlRequest(url=url, method='GET')
+        return response
+
     def blueprintInterfaceMap(self, blueprintName: str, spinePhysicalDevcie: str, leafPhysicalDevice: str) -> bytes:
         """Asign the interface mapping of logical devices to physical device models
 
@@ -767,6 +787,26 @@ class apstra():
 
         response = self.urlRequest(url=url, method='PUT', data=data)
         return response
+    
+    def blueprintPhysicalDevcieAssignment(self, blueprintName: str, blueprintDeviceId: str, deviceSN: str):
+        """Blueprint Physical Devcie Assignment
+
+        Args:
+            blueprintName (str): Name of blueprint
+            templateName (str): Name of DC template to use with blueprint
+            designType (str, optional): Type of blueprint design. Defaults to 'two_stage_l3clos'.
+
+        Returns:
+            bytes: Request response
+        """  
+        url = self.baseUrl + self.blueprints + '/' + blueprintName + '/nodes/' + blueprintDeviceId
+        data = f'''
+            {{"system_id":"{deviceSN}"}}
+        '''
+
+        response = self.urlRequest(url=url, method='PATCH', data=data)
+        return response
+    
     #Security Zones
     def blueprintCreateSecurityZone(self, securityZoneName: str, blueprintName: str) -> bytes:
         """Create a security zone within a blueprint
@@ -871,14 +911,12 @@ class apstra():
             dict: Request Response ID
         """        
         response = self.blueprintDeviceIdGet(blueprintName)
-        print(response)
         deviceList=[]
         for device in response:
             if device['role'] == 'leaf':
                 deviceList.append('{"system_id": "'+device['id']+'"}')
 
         deviceListJson=','.join(set(deviceList))
-        print(deviceList)
         
         #Security Zone ID needed to add virtual networks
         szId=None
