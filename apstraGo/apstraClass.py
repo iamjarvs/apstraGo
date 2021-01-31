@@ -83,7 +83,9 @@ class apstra():
                 headers = { 'Content-Type':"application/json", 'Cache-Control':"no-cache" }
                 data = '{ \"username\":\"' + self.username + '\", \"password\":\"' + self.password + '\" }'
                 response = requests.request(f"{method}", url, data=data, headers=headers, verify=False, timeout=10) 
-
+                if response.raise_for_status() == False:
+                    raise requests.exceptions.RequestException
+                
             elif method == 'GET':
                 headers = { 'Content-Type':"application/json", 'Cache-Control':"no-cache", 'AUTHTOKEN':f"{self.apiToken}"}
                 response = requests.request("GET", url, data=data, headers=headers, verify=False, timeout=10) 
