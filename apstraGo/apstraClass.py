@@ -6,7 +6,7 @@ TODO:
 import requests
 import time
 import json
-
+from rich import print
 requests.packages.urllib3.disable_warnings() #Supress SSL verify warnings
 response = requests.models.Response #python typing
  
@@ -71,15 +71,13 @@ class apstra():
 
         Returns:
             bytes: Request response object
-        """        
-        # print(f'\n\n{url}')
+        """ 
 
         try:
             if self.apiToken == None:
                 headers = { 'Content-Type':"application/json", 'Cache-Control':"no-cache" }
                 data = '{ \"username\":\"' + self.username + '\", \"password\":\"' + self.password + '\" }'
                 response = requests.request(f"{method}", url, data=data, headers=headers, verify=False, timeout=10) 
-                return response
 
             elif method == 'GET':
                 headers = { 'Content-Type':"application/json", 'Cache-Control':"no-cache", 'AUTHTOKEN':f"{self.apiToken}"}
@@ -105,7 +103,11 @@ class apstra():
 
             return response
         except requests.exceptions.RequestException as e:
-            raise SystemExit(e)
+            self.customError(response=str(e))
+            exit(1)
+        except requests.exceptions.Timeout as e:
+            self.customError(response=str(e))
+            exit(1)
 
 
     """
@@ -130,6 +132,7 @@ class apstra():
         self.port=str(kwargs['port'])
         self.createBaseUrl()
         response = self.getApiToken()
+        self.customSuccess(response=response)
         return response
 
     def getApiToken(self):
@@ -978,11 +981,22 @@ class apstra():
     """
     Error Catch
     """
-    def catchErrors(self, response: bytes) -> None:
-        """May be used to print errors from JSON return
+    def customError(self, response: bytes) -> print:
+        print("#" * 120)
+        if isinstance(response, requests.models.Response):
+            print(f"""\n[bold red]Error[/]:\n     {str(response.json()['errors'])} \n     {response.reason} \n     {response.text} \n     {response.url} \n     {response.status_code}\n""")
+        elif isinstance(response, str):
+            print(f'''[bold red]Error[/]:\n     {response}''')
+        elif isinstance(response, dict):
+            print(f'''\n[bold red]Error: YAML Input Issue[/]\n     {json.dumps(response, indent=4)}\n''')
+        print("#" * 120)
+        print('\n')
 
-        Args:
-            response (bytes): Response from a URI request
-        """        
-        if 'errors' in response.json():
-            print(response.json())
+    def customSuccess(self, response: bytes) -> print:
+        print("#" * 120)
+        if isinstance(response, requests.models.Response):
+            print(f"""\n[bold green]Success[/]:\n     {response.reason} \n     {response.text} \n     {response.url} \n     {response.status_code}\n""")
+        elif isinstance(response, str):
+            print(f"""\n[bold green]Success[/]:\n     {response}""")    
+        print("#" * 120)
+        print('\n')
