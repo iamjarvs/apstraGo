@@ -1,4 +1,9 @@
 """
+==========================================
+ Title:  ApstraGo
+ Author: Adam Jarvis
+ Date:   2021
+==========================================
 TODO:
     - Create configlet
 
@@ -97,9 +102,7 @@ class apstra():
 
             elif method == 'PATCH':
                 headers = { 'Content-Type':"application/json", 'Cache-Control':"no-cache", 'AUTHTOKEN':f"{self.apiToken}"}
-                response = requests.request("PATCH", url, data=data, headers=headers, verify=False, timeout=10) 
-
-            # print(f'{response.status_code} \n\n')
+                response = requests.request("PATCH", url, data=data, headers=headers, verify=False, timeout=10)
 
             return response
         except requests.exceptions.RequestException as e:
@@ -145,7 +148,6 @@ class apstra():
         self.apiToken = None
         response = self.urlRequest(url=loginUrl, method='POST')
         self.apiToken = response.json()['token']
-        print(f"API Token: {self.apiToken}")
         return response
         
     def createBaseUrl(self):
@@ -956,7 +958,6 @@ class apstra():
                 }}
 
             '''
-        print(data)
         response = self.urlRequest(url=url, method='POST', data=data)
         return response
 

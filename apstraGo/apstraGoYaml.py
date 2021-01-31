@@ -1,7 +1,11 @@
 """
-This tool allows someone to define Apstra state and spine it up
+==========================================
+ Title:  ApstraGo
+ Author: Adam Jarvis
+ Date:   2021
+==========================================
 
-Useful for demos
+This tool allows someone to define Apstra state and spine it up
 
 """
 from cerberus import Validator

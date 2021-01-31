@@ -1,3 +1,10 @@
+"""
+==========================================
+ Title:  ApstraGo
+ Author: Adam Jarvis
+ Date:   2021
+==========================================
+"""
 import json
 try:
     import apstraClass

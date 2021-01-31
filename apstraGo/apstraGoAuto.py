@@ -1,3 +1,10 @@
+"""
+==========================================
+ Title:  ApstraGo
+ Author: Adam Jarvis
+ Date:   2021
+==========================================
+"""
 try:
     from jclClass import jcl
 except ModuleNotFoundError as e:
