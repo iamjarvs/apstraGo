@@ -808,7 +808,7 @@ class apstra():
         """  
         url = self.baseUrl + self.blueprints + '/' + blueprintName + '/nodes/' + blueprintDeviceId
         data = f'''
-            {{"system_id":"{deviceSN}"}}
+            {{"system_id":"{deviceSN}", "deploy_mode":"deploy"}}
         '''
 
         response = self.urlRequest(url=url, method='PATCH', data=data)
