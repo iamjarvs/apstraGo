@@ -28,8 +28,8 @@ apstrago:
       leafName: ""                          #Optional (str) - Default = rackTypeName + -Leaf
       linksPerSpine: "1"                    #Optional (str) - Default = 1
       leafLogicalDevice: ""                 #Optional (str) - Default = AOS-7x10-Leaf
-      leafSpineLinkSpeedUnit : "G"          #Optional (str) - Default = G
-      leafSpineLinkSpeedValue: "40"         #Optional (str) - Default = 10
+      leafSpineLinkSpeedUnit : ""          #Optional (str) - Default = G
+      leafSpineLinkSpeedValue: ""         #Optional (str) - Default = 10
       serverName: ""                        #Optional (str) - Default = rackTypeName + -Server
       serverCount: ""                       #Optional (str) - Default = 1
       serverLogicalDevice: ""               #Optional (str) - Default = AOS-1x10-1
@@ -44,8 +44,8 @@ apstrago:
       spineLogicalDeviceId: ""              #Required (str) - If section selected
       rackTypeList:                         #Required (list) - If section selected
         - ""                                #Required (str) - Add Multiple Items To List - If section selected
-      spineCount: "2"                       #Optional (str) - Default = 2
-      ipChoice: "ipv4"                      #Optional (str) - Default = ipv4
+      spineCount: ""                       #Optional (str) - Default = 2
+      ipChoice: ""                      #Optional (str) - Default = ipv4
       asnAllocation: ""                     #Optional (str) - Default = distinct
       overlayControl: ""                    #Optional (str) - Default = evpn
   
