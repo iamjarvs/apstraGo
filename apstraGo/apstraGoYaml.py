@@ -51,7 +51,7 @@ def loadYaml(filepath: str) -> dict:
             exit(1)
     return inputDict
 
-def yamlValidate(inputDict: dict, yamlValidateFilename: str) -> None:
+def yamlValidate(inputDict: dict, yamlValidateFilename: str, con: bytes) -> None:
     """Validates the user input YAML with template
 
     Args:
@@ -275,7 +275,7 @@ def main():
     args=cli()
     yamlValidateFilename=yamlValidateFilePath()
     inputDict=loadYaml(filepath=args.filename)
-    yamlValidate(inputDict, yamlValidateFilename)
+    yamlValidate(inputDict, yamlValidateFilename, con)
     login(inputDict, con)
     inputProcess(inputDict, con)
 
