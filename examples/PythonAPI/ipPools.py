@@ -7,7 +7,7 @@ def main():
     con = apstra()
 
     #Login and get API token
-    con.login(password='admin', username='admin', port=48005, address='66.129.235.4')
+    con.login(password='admin', username='admin', port=443, address='192.168.1.81')
     
     #Print API Token
     print(con.apiToken)
